@@ -2,7 +2,6 @@ function isElementInViewport(element) {
     const rect = element.getBoundingClientRect();
     const windowHeight = window.innerHeight || document.documentElement.clientHeight;
     
-    // Проверяем, что нижняя часть элемента пересекает порог экрана
     return (
         rect.bottom >= windowHeight * 0.7 &&
         rect.top <= windowHeight
@@ -15,19 +14,16 @@ function updateActiveNavLink() {
     const navLinks = document.querySelectorAll('.nav-link');
     let currentElement = null;
     
-    // Проверяем секции
     sections.forEach(section => {
         if (isElementInViewport(section)) {
             currentElement = section;
         }
     });
     
-    // Проверяем футер, если он имеет ID
     if (footer && isElementInViewport(footer)) {
         currentElement = footer;
     }
     
-    // Дополнительная проверка для футера - если пользователь в конце страницы
     if (!currentElement && footer) {
         const scrollPosition = window.scrollY + window.innerHeight;
         const documentHeight = document.documentElement.scrollHeight;
@@ -77,7 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('scroll', updateActiveNavLink);
     window.addEventListener('resize', updateActiveNavLink);
     
-    // Инициализируем галерею на главной странице
     initMainPageGallery();
 });
 
@@ -96,9 +91,7 @@ function debounce(func, wait) {
 const debouncedUpdateNav = debounce(updateActiveNavLink, 100);
 window.addEventListener('scroll', debouncedUpdateNav);
 
-// Функция для галереи на главной странице
 function initMainPageGallery() {
-    // Инициализируем первую карточку (стойки)
     const mainImage = document.querySelector('#main-product-image');
     const thumbnails = document.querySelectorAll('.gallery-item:first-child .product-thumbnails .product-thumbnail');
     
@@ -127,20 +120,15 @@ function initMainPageGallery() {
         });
     }
     
-    // Инициализируем вторую карточку (панели)
     const mainPanelsImage = document.querySelector('#main-panels-image');
     const panelsThumbnails = document.querySelectorAll('.gallery-item:last-child .product-thumbnails .product-thumbnail');
     
     if (mainPanelsImage && panelsThumbnails.length) {
         panelsThumbnails.forEach((thumbnail, index) => {
             thumbnail.addEventListener('click', function() {
-                // Убираем активный класс у всех миниатюр в этой карточке
                 panelsThumbnails.forEach(thumb => thumb.classList.remove('active'));
                 
-                // Добавляем активный класс к выбранной миниатюре
                 this.classList.add('active');
-                
-                // Меняем главное изображение
                 const imagePath = this.getAttribute('data-image');
                 if (imagePath) {
                     mainPanelsImage.src = imagePath;
@@ -156,15 +144,12 @@ function initMainPageGallery() {
         });
     }
     
-    // Добавляем обработчики кликов для перехода на страницы товаров
     const productCards = document.querySelectorAll('.product-showcase');
     
     productCards.forEach((card, index) => {
-        // Исключаем клики по миниатюрам и главному изображению
         const clickableElements = card.querySelectorAll('.product-main-image, .product-thumbnails');
         
         card.addEventListener('click', function(e) {
-            // Проверяем, что клик не по миниатюрам или главному изображению
             let isClickableElement = false;
             clickableElements.forEach(element => {
                 if (element.contains(e.target)) {
@@ -173,12 +158,9 @@ function initMainPageGallery() {
             });
             
             if (!isClickableElement) {
-                // Определяем, на какую страницу переходить
                 if (index === 0) {
-                    // Первая карточка - стойки
                     window.location.href = 'stoyki.html';
                 } else if (index === 1) {
-                    // Вторая карточка - панели
                     window.location.href = 'paneli.html';
                 }
             }
@@ -189,38 +171,31 @@ function initMainPageGallery() {
     });
 }
 
-// Функция для уменьшения хедера при скролле
 function handleHeaderScroll() {
     const header = document.querySelector('.header');
     const logo = document.querySelector('.logo-img');
     const navLinks = document.querySelectorAll('.nav-link');
     
     if (window.scrollY > 100) {
-        // Уменьшаем хедер при скролле
         header.style.padding = '0.5rem 0';
         header.style.backdropFilter = 'blur(15px)';
         header.style.boxShadow = '0 2px 15px rgba(0, 0, 0, 0.4)';
         
-        // Уменьшаем логотип
         logo.style.height = '80px';
         logo.style.transition = 'height 0.3s ease';
         
-        // Уменьшаем навигационные ссылки
         navLinks.forEach(link => {
             link.style.fontSize = '18px';
             link.style.padding = '6px 14px';
             link.style.transition = 'all 0.3s ease';
         });
     } else {
-        // Возвращаем исходные размеры при возврате в начало страницы
         header.style.padding = '1rem 0';
         header.style.backdropFilter = 'blur(20px)';
         header.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
         
-        // Возвращаем исходный размер логотипа
         logo.style.height = '120px';
         
-        // Возвращаем исходные размеры навигационных ссылок
         navLinks.forEach(link => {
             link.style.fontSize = '22px';
             link.style.padding = '8px 16px';
@@ -228,8 +203,6 @@ function handleHeaderScroll() {
     }
 }
 
-// Добавляем обработчик события скролла
 window.addEventListener('scroll', handleHeaderScroll);
 
-// Вызываем функцию при загрузке страницы для установки начального состояния
 document.addEventListener('DOMContentLoaded', handleHeaderScroll);
