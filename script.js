@@ -1,5 +1,5 @@
+// ======================== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ========================
 let productCategories = [];
-
 const productTextCache = new Map();
 const modalState = {
     product: null,
@@ -7,6 +7,7 @@ const modalState = {
     currentIndex: 0
 };
 
+// ======================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ========================
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>"]/g, (char) => {
@@ -67,6 +68,7 @@ function formatProductPrice(product) {
     return formatRub(product.basePrice, true);
 }
 
+// ======================== ОБРАБОТКА ИЗОБРАЖЕНИЙ ========================
 function attachImageFallback(image) {
     if (!image || image.dataset.fallbackBound === 'true') return;
 
@@ -97,82 +99,122 @@ function bindImageFallbacks(root = document) {
     root.querySelectorAll('img').forEach(attachImageFallback);
 }
 
+// ======================== ЗАГРУЗКА ДАННЫХ ========================
 async function loadProductCategories() {
     const response = await fetch('products.json', { cache: 'no-store' });
     if (!response.ok) throw new Error(`products.json: ${response.status}`);
     productCategories = await response.json();
 }
 
-async function loadProductText(product) {
-    if (productTextCache.has(product.slug)) return productTextCache.get(product.slug);
-
-    for (const candidate of productTextCandidates(product)) {
-        try {
-            const response = await fetch(toFetchablePath(candidate), { cache: 'force-cache' });
-            if (!response.ok) continue;
-
-            const text = await response.text();
-            if (text.trim()) {
-                productTextCache.set(product.slug, text);
-                return text;
-            }
-        } catch (error) {
-            console.warn('Cannot load product text', candidate, error);
-        }
-    }
-
-    const fallback = `${product.name}\n\n${product.desc || ''}`;
-    productTextCache.set(product.slug, fallback);
-    return fallback;
-}
-
+// ======================== УЛУЧШЕННЫЙ ПАРСЕР ========================
+// 1. Распознавание опций с ценой (например "480х480х130мм - 6500р")
 function parseOptionLine(line) {
     const normalized = line.replace(/\s+/g, ' ').trim();
     if (!normalized) return null;
 
-    const priceMatch = normalized.match(/(по запросу|\+\s?\d[\d\s]*\s?[р₽]?|\d[\d\s]*\s?[р₽])/i);
+    // Пропускаем строки-заголовки
+    if (/^(стоимость|цены|опции|дополнительно|варианты):?$/i.test(normalized)) return null;
+
+    // Ищем цену в конце строки или после дефиса
+    let priceMatch = normalized.match(/(\d[\d\s]*)\s*(р|руб|₽)?\.?$/i);
+    if (!priceMatch) {
+        priceMatch = normalized.match(/[-–—]\s*(\d[\d\s]*)\s*(р|руб|₽)?\.?$/i);
+    }
     if (!priceMatch) return null;
 
-    const value = priceMatch[1].replace(/\s+/g, ' ').trim();
-    let label = normalized.replace(priceMatch[0], '').replace(/[- -- -:]+$/gi, '').trim();
-    label = label.replace(/-/, "").replace(/^(\d+\.)\s*/, '').trim();
+    let priceValue = priceMatch[1].replace(/\s/g, '');
+    const currency = priceMatch[2] || 'р';
+    const price = `${priceValue}${currency}`;
 
+    // Извлекаем название опции (всё до цены)
+    let label = normalized.replace(priceMatch[0], '').replace(/[-–—:*]\s*$/, '').trim();
     if (!label) label = 'Комплектация';
-    return { label, value };
+    label = label.replace(/^\*\s*/, ''); // убираем звёздочку
+
+    if (!label || /^[-\s–—]+$/.test(label)) label = 'Дополнительно';
+
+    return { label, price, isFeature: false };
 }
 
+// 2. Извлечение структурированных характеристик (без цены) — размеры, вес, доставка и т.п.
+function extractStructuredFeatures(lines) {
+    const features = [];
+    const remainingLines = [];
+
+    const featurePatterns = [
+        /^✅/, /^•/, /^\*/, /^🌲/, /^🚚/,
+        /^(нижняя площадка|верхняя площадка|четыре колонны|общая высота|общий вес|цвет изделия|подставка имеет)/i,
+        /^(размер|вес|материал|отделка|доставка|производство|гарантия)/i,
+        /^в наличии и под заказ:/i,
+        /^подставка имеет/i
+    ];
+
+    for (const line of lines) {
+        const isFeature = featurePatterns.some(pattern => pattern.test(line));
+        if (isFeature) {
+            let cleanLine = line.replace(/^[✅•*🌲🚚]\s*/, '');
+            features.push(cleanLine);
+        } else {
+            remainingLines.push(line);
+        }
+    }
+
+    return { features, remainingLines };
+}
+
+// 3. Главная функция парсинга текста
 function parseProductText(text, product) {
     const lines = text
         .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean);
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
 
-    const cleanLines = lines.filter((line) => {
-        const normalized = line.toLowerCase();
-        return normalized !== String(product.name || '').toLowerCase();
-    });
+    const productNameNorm = (product.name || '').toLowerCase();
+    const cleanLines = lines.filter(line => line.toLowerCase() !== productNameNorm);
+
+    // Извлекаем фичи (без цены) и остальные строки
+    const { features, remainingLines } = extractStructuredFeatures(cleanLines);
 
     const description = [];
     const options = [];
 
-    cleanLines.forEach((line) => {
-        const option = parseOptionLine(line);
-        if (option) {
-            options.push(option);
-            return;
+    for (const line of remainingLines) {
+        // Пробуем распознать опцию с ценой
+        const priceOption = parseOptionLine(line);
+        if (priceOption) {
+            options.push(priceOption);
+            continue;
         }
 
-        if (/^(основные преимущества|доступные размеры|доставка|кратко о товаре)$/i.test(line)) return;
+        // Пропускаем явные заголовки
+        if (/^(стоимость|цены|опции|дополнительно|варианты|основные преимущества|доступные размеры|доставка|кратко о товаре):?$/i.test(line)) {
+            continue;
+        }
 
+        // Всё остальное — в описание
         description.push(line.replace(/^\d+\.\s*/, ''));
-    });
+    }
+
+    // Добавляем извлечённые характеристики как опции без цены
+    for (const feat of features) {
+        const parts = feat.split(':');
+        if (parts.length >= 2) {
+            const label = parts[0].trim();
+            const value = parts.slice(1).join(':').trim();
+            options.push({ label, price: value, isFeature: true });
+        } else {
+            // Если нет двоеточия, кладём всю строку как label, а цену прочерком
+            options.push({ label: feat, price: '', isFeature: true });
+        }
+    }
 
     return {
-        description: description.slice(0, 6),
+        description: description.slice(0, 10),
         options
     };
 }
 
+// ======================== ПОСТРОЕНИЕ КАРТОЧЕК ========================
 function buildProductImages(product, maxCount = productImageCount(product)) {
     return Array.from({ length: maxCount }, (_, index) => productImageUrl(product, index + 1));
 }
@@ -245,6 +287,7 @@ function initDynamicThumbnailGalleries() {
     });
 }
 
+// ======================== МОДАЛЬНОЕ ОКНО ========================
 function renderModalImage() {
     const modalImage = document.getElementById('productModalImage');
     const modalThumbs = document.getElementById('productModalThumbs');
@@ -275,21 +318,25 @@ function changeModalImage(direction) {
 }
 
 function buildOptionsMarkup(product, parsed) {
-    const options = [...parsed.options];
+    let options = [...parsed.options];
 
     if (!options.length) {
         options.push({
             label: 'Базовая комплектация',
-            value: formatProductPrice(product)
+            price: formatProductPrice(product),
+            isFeature: false
         });
     }
 
-    return options.map((option) => `
-        <li>
-            <span>${escapeHtml(option.label)}</span>
-            <span>${escapeHtml(option.value)}</span>
-        </li>
-    `).join('');
+    return options.map(option => {
+        const displayPrice = option.isFeature ? (option.price || '') : option.price;
+        return `
+            <li>
+                <span>${escapeHtml(option.label)}</span>
+                <span>${escapeHtml(displayPrice)}</span>
+            </li>
+        `;
+    }).join('');
 }
 
 async function openProductModal(productIndex) {
@@ -304,7 +351,6 @@ async function openProductModal(productIndex) {
     const rawText = await loadProductText(product);
     const parsedText = parseProductText(rawText, product);
 
-    console.log(parsedText)
     document.getElementById('productModalBadge').textContent = product.badge || '';
     document.getElementById('productModalTitle').textContent = product.name || '';
     document.getElementById('productModalSubtitle').textContent = product.subtitle || '';
@@ -315,7 +361,7 @@ async function openProductModal(productIndex) {
     const descriptionItems = parsedText.description.length ? parsedText.description : [product.desc || ''];
     descriptionContainer.innerHTML = descriptionItems
         .slice(0, 5)
-        .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+        .map(paragraph => `<p>${escapeHtml(paragraph)}</p>`)
         .join('');
 
     const optionsSection = document.getElementById('productModalOptionsSection');
@@ -337,6 +383,29 @@ function closeProductModal() {
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+}
+
+async function loadProductText(product) {
+    if (productTextCache.has(product.slug)) return productTextCache.get(product.slug);
+
+    for (const candidate of productTextCandidates(product)) {
+        try {
+            const response = await fetch(toFetchablePath(candidate), { cache: 'force-cache' });
+            if (!response.ok) continue;
+
+            const text = await response.text();
+            if (text.trim()) {
+                productTextCache.set(product.slug, text);
+                return text;
+            }
+        } catch (error) {
+            console.warn('Cannot load product text', candidate, error);
+        }
+    }
+
+    const fallback = `${product.name}\n\n${product.desc || ''}`;
+    productTextCache.set(product.slug, fallback);
+    return fallback;
 }
 
 function initProductCardClicks() {
@@ -370,6 +439,7 @@ function initModalControls() {
     });
 }
 
+// ======================== ИНИЦИАЛИЗАЦИЯ ========================
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadProductCategories();
@@ -383,3 +453,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     initProductCardClicks();
     initModalControls();
 });
+
+// ======================== СТИЛИ ДЛЯ СКРУГЛЁННОГО СКРОЛЛА (добавим динамически) ========================
+const style = document.createElement('style');
+style.textContent = `
+    .product-modal-dialog {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(196, 154, 108, 0.65) rgba(255, 255, 255, 0.06);
+    }
+    .product-modal-dialog::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    .product-modal-dialog::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+    }
+    .product-modal-dialog::-webkit-scrollbar-thumb {
+        background: rgba(196, 154, 108, 0.65);
+        border-radius: 10px;
+    }
+    .product-modal-dialog::-webkit-scrollbar-thumb:hover {
+        background: rgba(196, 154, 108, 0.85);
+    }
+`;
+document.head.appendChild(style);

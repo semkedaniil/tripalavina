@@ -1280,6 +1280,11 @@ main {
     list-style: none;
     margin: 0;
     padding: 0;
+
+    li > span {
+        max-width: 60%;
+        white-space: pre-line !important;
+    }
 }
 
 .product-modal-options li {
