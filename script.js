@@ -1,296 +1,22 @@
-// script.js - Tripalavina Interactive Gallery & Navigation
+let productCategories = [];
 
-// ======================== UTILITY FUNCTIONS ========================
+const productTextCache = new Map();
+const modalState = {
+    product: null,
+    images: [],
+    currentIndex: 0
+};
 
-/**
- * Debounce function to limit the rate at which a function can fire
- */
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-/**
- * Check if an element is in the viewport (with threshold at 70% from bottom)
- */
-function isElementInViewport(element) {
-    const rect = element.getBoundingClientRect();
-    const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-
-    return (
-        rect.bottom >= windowHeight * 0.7 &&
-        rect.top <= windowHeight
-    );
-}
-
-// ======================== NAVIGATION & SCROLL ========================
-
-/**
- * Update active navigation link based on current scroll position
- */
-function updateActiveNavLink() {
-    const sections = document.querySelectorAll('section[id]');
-    const footer = document.querySelector('footer[id]');
-    const navLinks = document.querySelectorAll('.nav-link');
-    let currentElement = null;
-
-    sections.forEach(section => {
-        if (isElementInViewport(section)) {
-            currentElement = section;
-        }
-    });
-
-    if (footer && isElementInViewport(footer)) {
-        currentElement = footer;
-    }
-
-    if (!currentElement && footer) {
-        const scrollPosition = window.scrollY + window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-
-        if (scrollPosition >= documentHeight - 100) {
-            currentElement = footer;
-        }
-    }
-
-    navLinks.forEach(link => {
-        link.classList.remove('active');
-    });
-
-    if (currentElement) {
-        const targetId = currentElement.getAttribute('id');
-        const correspondingLink = document.querySelector(`.nav-link[href="#${targetId}"]`);
-
-        if (correspondingLink) {
-            correspondingLink.classList.add('active');
-        }
-    }
-}
-
-/**
- * Smooth scroll to section when navigation link is clicked
- */
-function smoothScrollToSection(event) {
-    event.preventDefault();
-
-    const targetId = this.getAttribute('href');
-    const targetElement = document.querySelector(targetId);
-
-    if (targetElement) {
-        const headerHeight = document.querySelector('.header').offsetHeight;
-        const targetPosition = targetElement.offsetTop - headerHeight;
-
-        window.scrollTo({
-            top: targetPosition,
-            behavior: 'smooth'
-        });
-    }
-}
-
-/**
- * Handle header styling on scroll (shrink/expand effect)
- */
-function handleHeaderScroll() {
-    const header = document.querySelector('.header');
-    const logo = document.querySelector('.logo-img');
-    const navLinks = document.querySelectorAll('.nav-link');
-
-    if (!header || !logo) return;
-
-    if (window.scrollY > 100) {
-        header.style.padding = '0.5rem 0';
-        header.style.backdropFilter = 'blur(15px)';
-        header.style.boxShadow = '0 2px 15px rgba(0, 0, 0, 0.4)';
-
-        logo.style.height = '80px';
-        logo.style.transition = 'height 0.3s ease';
-
-        navLinks.forEach(link => {
-            link.style.fontSize = '18px';
-            link.style.padding = '6px 14px';
-            link.style.transition = 'all 0.3s ease';
-        });
-    } else {
-        header.style.padding = '1rem 0';
-        header.style.backdropFilter = 'blur(20px)';
-        header.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
-
-        logo.style.height = '120px';
-
-        navLinks.forEach(link => {
-            link.style.fontSize = '22px';
-            link.style.padding = '8px 16px';
-        });
-    }
-}
-
-// ======================== MODAL GALLERY ========================
-
-/**
- * Initialize modal image viewer for all product images
- */
-function initModalGallery() {
-    const modal = document.getElementById('imageModal');
-    const modalImg = document.getElementById('modalImage');
-    const closeModal = document.querySelector('.modal-close');
-
-    if (!modal || !modalImg || !closeModal) return;
-
-    // Close modal when clicking on X or outside the image
-    closeModal.onclick = () => modal.style.display = 'none';
-    modal.onclick = (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-    };
-
-    // Add click event to all product images and thumbnails
-    const allImages = document.querySelectorAll('.product-main-image img, .product-thumbnail');
-    allImages.forEach(img => {
-        img.addEventListener('click', (e) => {
-            e.stopPropagation(); // Останавливаем всплытие, чтобы не сработал переход по карточке
-            modal.style.display = 'flex';
-            modalImg.src = img.src;
-            modalImg.alt = img.alt || 'Tripalavina продукт';
-        });
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"]/g, (char) => {
+        if (char === '&') return '&amp;';
+        if (char === '<') return '&lt;';
+        if (char === '>') return '&gt;';
+        return '&quot;';
     });
 }
 
-// ======================== PRODUCT THUMBNAIL GALLERY ========================
-
-/**
- * Initialize thumbnail gallery for each product card
- * Supports dynamic product cards (not just the first two)
- */
-function initDynamicThumbnailGalleries() {
-    const productCards = document.querySelectorAll('.product-showcase');
-
-    productCards.forEach(card => {
-        const mainImage = card.querySelector('.product-main-image img');
-        const thumbnails = card.querySelectorAll('.product-thumbnail');
-
-        if (!mainImage || thumbnails.length === 0) return;
-
-        // Set first thumbnail as active if none is active
-        const hasActive = Array.from(thumbnails).some(t => t.classList.contains('active'));
-        if (!hasActive && thumbnails.length > 0) {
-            thumbnails[0].classList.add('active');
-        }
-
-        thumbnails.forEach(thumbnail => {
-            thumbnail.addEventListener('click', function (e) {
-                e.stopPropagation(); // Останавливаем всплытие
-
-                // Remove active class from all thumbnails in this card
-                thumbnails.forEach(thumb => thumb.classList.remove('active'));
-
-                // Add active class to clicked thumbnail
-                this.classList.add('active');
-
-                // Change main image
-                const imagePath = this.getAttribute('data-image') || this.src;
-                if (imagePath) {
-                    // Fade animation
-                    mainImage.style.opacity = '0';
-                    setTimeout(() => {
-                        mainImage.src = imagePath;
-                        mainImage.alt = this.alt || 'Tripalavina продукт';
-                        mainImage.style.opacity = '1';
-                    }, 150);
-                }
-            });
-        });
-    });
-}
-
-// ======================== CARD CLICK (REDIRECT) ========================
-
-/**
- * Клик по карточке вне фото и миниатюр — переход на страницу товара, если задан data-detail-url.
- * Поддерживает Ctrl+Click и Cmd+Click для открытия в новой вкладке.
- * ВАЖНО: НЕ блокирует клики по фото и миниатюрам (они обрабатываются отдельно)
- */
-function initCardRedirect() {
-    const productCards = document.querySelectorAll('.product-showcase');
-
-    productCards.forEach((card) => {
-        // Эти элементы НЕ должны вызывать переход (на них свои обработчики)
-        const excludedElements = card.querySelectorAll('.product-main-image, .product-thumbnails, .product-thumbnail, .product-main-image img');
-        const detailUrl = card.dataset.detailUrl;
-
-        if (!detailUrl) {
-            card.style.cursor = 'default';
-            return;
-        }
-
-        card.style.cursor = 'pointer';
-
-        card.addEventListener('click', function (e) {
-            // Проверяем, был ли клик на исключённых элементах (фото, миниатюры)
-            let isExcluded = false;
-            excludedElements.forEach(element => {
-                if (element && element.contains(e.target)) {
-                    isExcluded = true;
-                }
-            });
-
-            // Если кликнули на фото или миниатюру — не переходим, даём сработать модалке/галерее
-            if (isExcluded) {
-                return;
-            }
-
-            // Открываем ссылку с учётом модификаторов
-            if (e.ctrlKey || e.metaKey) {
-                window.open(detailUrl, '_blank');
-            } else if (e.shiftKey) {
-                window.open(detailUrl, '_blank', 'width=1200,height=800');
-            } else {
-                window.location.href = detailUrl;
-            }
-        });
-    });
-}
-
-// ======================== MISSING IMAGE HANDLER ========================
-
-/**
- * Handle broken image links: другие расширения (.JPG, .jpeg, .JPEG), затем плейсхолдер.
- */
-function initImageErrorHandler() {
-    const allImages = document.querySelectorAll('.product-main-image img, .product-thumbnail');
-
-    allImages.forEach(img => {
-        img.onerror = function () {
-            if (this.src.indexOf('placehold.co') !== -1) return;
-            const u = this.src.split('?')[0];
-            const stem = u.replace(/\.[^/.]+$/, '');
-            const variants = ['.jpg', '.JPG', '.jpeg', '.JPEG'].map(ext => stem + ext);
-            let next = Number(this.dataset.imgExtNext ?? NaN);
-            if (Number.isNaN(next)) {
-                const cur = variants.findIndex(v => v === u);
-                next = cur < 0 ? 1 : cur + 1;
-            }
-            if (next < variants.length) {
-                this.dataset.imgExtNext = String(next + 1);
-                this.src = variants[next];
-                return;
-            }
-            this.onerror = null;
-            this.src = 'https://placehold.co/600x400/2c3e2f/ffffff?text=Tripalavina';
-        };
-    });
-}
-
-// ======================== PRODUCT CARD GENERATION ========================
-
-/**
- * Номер файла в имени (1, 2, … или из imageSlots для пропусков в нумерации).
- */
 function productImageFileIndex(product, position1Based) {
     if (Array.isArray(product.imageSlots) && product.imageSlots.length >= position1Based) {
         return product.imageSlots[position1Based - 1];
@@ -305,9 +31,6 @@ function productImageCount(product) {
     return product.maxThumbs ?? 10;
 }
 
-/**
- * Фото: обычно static/{folder}/{внутренняя}/n.jpg; flat — static/{folder}/Префикс (n).jpg (стойки, панели в корне папки).
- */
 function productImageUrl(product, position1Based) {
     const n = productImageFileIndex(product, position1Based);
     const folder = product.folder;
@@ -319,148 +42,344 @@ function productImageUrl(product, position1Based) {
     return `static/${folder}/${inner}/${n}.jpg`;
 }
 
-/**
- * Каталог подгружается из products.json (те же поля, что раньше в массиве).
- * Главную страницу открывайте через локальный сервер, чтобы fetch сработал.
- */
-let productCategories = [];
-
-async function loadProductCategories() {
-    const res = await fetch('products.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error('products.json: ' + res.status);
-    productCategories = await res.json();
+function productTextCandidates(product) {
+    const inner = product.imageInnerFolder ?? product.imageBase ?? product.name;
+    return [
+        `static/${product.folder}/${inner}/Описание к товару.txt`,
+        `static/${product.folder}/${inner}/Описание товара.txt`,
+        `static/${product.folder}/Описание к товару.txt`,
+        `static/${product.folder}/Описание товара.txt`
+    ];
 }
 
-/**
- * Generate all product cards dynamically
- */
+function toFetchablePath(path) {
+    return encodeURI(path).replace(/#/g, '%23');
+}
+
+function formatRub(value, withPrefix = true) {
+    if (value == null || Number.isNaN(Number(value))) return '';
+    const amount = Number(value).toLocaleString('ru-RU');
+    return withPrefix ? `от ${amount} руб.` : `${amount} руб.`;
+}
+
+function formatProductPrice(product) {
+    if (product.priceText) return product.priceText;
+    return formatRub(product.basePrice, true);
+}
+
+function attachImageFallback(image) {
+    if (!image || image.dataset.fallbackBound === 'true') return;
+
+    image.dataset.fallbackBound = 'true';
+    image.addEventListener('error', function handleImageError() {
+        if (this.src.includes('placehold.co')) return;
+
+        const cleanSrc = this.src.split('?')[0];
+        const stem = cleanSrc.replace(/\.[^/.]+$/, '');
+        const variants = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG'].map((ext) => stem + ext);
+        let next = Number(this.dataset.imgExtNext || 0);
+
+        while (next < variants.length) {
+            const nextSrc = variants[next];
+            next += 1;
+            if (nextSrc !== cleanSrc) {
+                this.dataset.imgExtNext = String(next);
+                this.src = nextSrc;
+                return;
+            }
+        }
+
+        this.src = 'https://placehold.co/800x600/111111/ffffff?text=Tripalavina';
+    });
+}
+
+function bindImageFallbacks(root = document) {
+    root.querySelectorAll('img').forEach(attachImageFallback);
+}
+
+async function loadProductCategories() {
+    const response = await fetch('products.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`products.json: ${response.status}`);
+    productCategories = await response.json();
+}
+
+async function loadProductText(product) {
+    if (productTextCache.has(product.slug)) return productTextCache.get(product.slug);
+
+    for (const candidate of productTextCandidates(product)) {
+        try {
+            const response = await fetch(toFetchablePath(candidate), { cache: 'force-cache' });
+            if (!response.ok) continue;
+
+            const text = await response.text();
+            if (text.trim()) {
+                productTextCache.set(product.slug, text);
+                return text;
+            }
+        } catch (error) {
+            console.warn('Cannot load product text', candidate, error);
+        }
+    }
+
+    const fallback = `${product.name}\n\n${product.desc || ''}`;
+    productTextCache.set(product.slug, fallback);
+    return fallback;
+}
+
+function parseOptionLine(line) {
+    const normalized = line.replace(/\s+/g, ' ').trim();
+    if (!normalized) return null;
+
+    const priceMatch = normalized.match(/(по запросу|\+\s?\d[\d\s]*\s?[р₽]?|\d[\d\s]*\s?[р₽])/i);
+    if (!priceMatch) return null;
+
+    const value = priceMatch[1].replace(/\s+/g, ' ').trim();
+    let label = normalized.replace(priceMatch[0], '').replace(/[- -- -:]+$/gi, '').trim();
+    label = label.replace(/-/, "").replace(/^(\d+\.)\s*/, '').trim();
+
+    if (!label) label = 'Комплектация';
+    return { label, value };
+}
+
+function parseProductText(text, product) {
+    const lines = text
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+    const cleanLines = lines.filter((line) => {
+        const normalized = line.toLowerCase();
+        return normalized !== String(product.name || '').toLowerCase();
+    });
+
+    const description = [];
+    const options = [];
+
+    cleanLines.forEach((line) => {
+        const option = parseOptionLine(line);
+        if (option) {
+            options.push(option);
+            return;
+        }
+
+        if (/^(основные преимущества|доступные размеры|доставка|кратко о товаре)$/i.test(line)) return;
+
+        description.push(line.replace(/^\d+\.\s*/, ''));
+    });
+
+    return {
+        description: description.slice(0, 6),
+        options
+    };
+}
+
+function buildProductImages(product, maxCount = productImageCount(product)) {
+    return Array.from({ length: maxCount }, (_, index) => productImageUrl(product, index + 1));
+}
+
 function generateAllProductCards() {
     const productsGrid = document.querySelector('.gallery-grid');
     if (!productsGrid) return;
 
-    productsGrid.innerHTML = '';
-
     if (!productCategories.length) {
-        productsGrid.innerHTML =
-            '<p class="section-title" style="grid-column:1/-1;text-align:center;opacity:0.85">' +
-            'Не удалось загрузить каталог. Откройте сайт через локальный сервер (нужен файл products.json).</p>';
+        productsGrid.innerHTML = '<p class="catalog-intro">Каталог не удалось загрузить. Откройте сайт через локальный сервер, чтобы работал fetch для файла products.json.</p>';
         return;
     }
 
-    productCategories.forEach((product, idx) => {
-        const thumbCount = productImageCount(product);
-        const firstSrc = productImageUrl(product, 1);
+    productsGrid.innerHTML = productCategories.map((product, idx) => {
+        const thumbCount = Math.min(productImageCount(product), 4);
+        const thumbnails = Array.from({ length: thumbCount }, (_, thumbIndex) => {
+            const imageUrl = productImageUrl(product, thumbIndex + 1);
+            const activeClass = thumbIndex === 0 ? ' active' : '';
+            return `<img class="product-thumbnail${activeClass}" src="${escapeHtml(imageUrl)}" data-image="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.name)}" loading="lazy">`;
+        }).join('');
 
-        const card = document.createElement('div');
-        card.className = 'gallery-item product-showcase';
-        card.setAttribute('data-product-idx', String(idx));
-        card.dataset.detailUrl = product.detailUrl || '';
-        card.id = `product-${idx}`;
-
-        const mainImageDiv = document.createElement('div');
-        mainImageDiv.className = 'product-main-image';
-        const mainImg = document.createElement('img');
-        mainImg.alt = product.name;
-        mainImg.loading = 'lazy';
-        mainImg.src = firstSrc;
-        mainImageDiv.appendChild(mainImg);
-
-        const thumbnailsDiv = document.createElement('div');
-        thumbnailsDiv.className = 'product-thumbnails';
-
-        for (let i = 1; i <= thumbCount; i++) {
-            const url = productImageUrl(product, i);
-            const thumbImg = document.createElement('img');
-            thumbImg.className = 'product-thumbnail';
-            if (i === 1) thumbImg.classList.add('active');
-            thumbImg.alt = `${product.name} — фото ${i}`;
-            thumbImg.loading = 'lazy';
-            thumbImg.src = url;
-            thumbImg.setAttribute('data-image', url);
-            thumbnailsDiv.appendChild(thumbImg);
-        }
-
-        const priceMainHtml = product.priceText != null
-            ? `<span class="price">${product.priceText}</span>`
-            : `<span class="price">${product.basePrice.toLocaleString('ru-RU')}₽</span>`;
-        const badgeHtml = product.badge
-            ? `<div class="price-badge">${product.badge}</div>`
-            : '';
-
-        const overlayDiv = document.createElement('div');
-        overlayDiv.className = 'gallery-overlay';
-        overlayDiv.innerHTML = `
-            <div class="product-header">
-                <div class="product-header-content">
-                    <h3>${escapeHtml(product.name)}</h3>
-                    <div class="product-subtitle">${escapeHtml(product.subtitle)}</div>
-                    <div class="product-description-short">${escapeHtml(product.desc)}</div>
+        return `
+            <article class="gallery-item product-showcase" data-product-idx="${idx}" id="product-${idx}">
+                <div class="product-main-image">
+                    <img src="${escapeHtml(productImageUrl(product, 1))}" alt="${escapeHtml(product.name)}" loading="lazy">
                 </div>
-            </div>
-            <div class="product-price">
-                <div class="price-main">
-                    ${priceMainHtml}
+                <div class="product-thumbnails">${thumbnails}</div>
+                <div class="gallery-overlay">
+                    <div class="product-header">
+                        <div class="product-header-content">
+                            <h3>${escapeHtml(product.name)}</h3>
+                            <div class="product-subtitle">${escapeHtml(product.subtitle || '')}</div>
+                            <div class="product-description-short">${escapeHtml(product.desc || '')}</div>
+                            <div class="product-price-inline">
+                                <span class="price">${escapeHtml(formatProductPrice(product))}</span>
+                                <span class="price-note">${escapeHtml(product.priceNote || '')}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-meta-row click-hint">
+                        Подробнее
+                    </div>
                 </div>
-                <span class="price-note">${escapeHtml(product.priceNote)}</span>
-            </div>
-            <div class="click-hint">Подробнее</div>
+            </article>
         `;
+    }).join('');
 
-        card.appendChild(mainImageDiv);
-        card.appendChild(thumbnailsDiv);
-        card.appendChild(overlayDiv);
-        productsGrid.appendChild(card);
+    bindImageFallbacks(productsGrid);
+}
+
+function initDynamicThumbnailGalleries() {
+    document.querySelectorAll('.product-showcase').forEach((card) => {
+        const mainImage = card.querySelector('.product-main-image img');
+        const thumbnails = Array.from(card.querySelectorAll('.product-thumbnail'));
+        if (!mainImage || !thumbnails.length) return;
+
+        thumbnails.forEach((thumbnail) => {
+            thumbnail.addEventListener('click', (event) => {
+                event.stopPropagation();
+                thumbnails.forEach((thumb) => thumb.classList.remove('active'));
+                thumbnail.classList.add('active');
+                mainImage.style.opacity = '0.45';
+                requestAnimationFrame(() => {
+                    mainImage.src = thumbnail.dataset.image || thumbnail.src;
+                    mainImage.alt = thumbnail.alt || 'Tripalavina';
+                    mainImage.style.opacity = '1';
+                });
+            });
+        });
     });
 }
 
-// Простая защита от XSS
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-        return c;
+function renderModalImage() {
+    const modalImage = document.getElementById('productModalImage');
+    const modalThumbs = document.getElementById('productModalThumbs');
+    if (!modalImage || !modalThumbs || !modalState.images.length) return;
+
+    modalImage.src = modalState.images[modalState.currentIndex];
+    modalImage.alt = modalState.product?.name || 'Tripalavina';
+
+    modalThumbs.innerHTML = modalState.images.map((image, index) => {
+        const activeClass = index === modalState.currentIndex ? ' is-active' : '';
+        return `<img class="product-modal-thumb${activeClass}" src="${escapeHtml(image)}" data-image-index="${index}" alt="${escapeHtml(modalState.product?.name || '')}" loading="lazy">`;
+    }).join('');
+
+    bindImageFallbacks(modalThumbs);
+
+    modalThumbs.querySelectorAll('.product-modal-thumb').forEach((thumb) => {
+        thumb.addEventListener('click', () => {
+            modalState.currentIndex = Number(thumb.dataset.imageIndex);
+            renderModalImage();
+        });
     });
 }
 
-// ======================== INITIALIZATION ========================
+function changeModalImage(direction) {
+    if (!modalState.images.length) return;
+    modalState.currentIndex = (modalState.currentIndex + direction + modalState.images.length) % modalState.images.length;
+    renderModalImage();
+}
 
-/**
- * Main initialization function
- */
-document.addEventListener('DOMContentLoaded', async function () {
+function buildOptionsMarkup(product, parsed) {
+    const options = [...parsed.options];
+
+    if (!options.length) {
+        options.push({
+            label: 'Базовая комплектация',
+            value: formatProductPrice(product)
+        });
+    }
+
+    return options.map((option) => `
+        <li>
+            <span>${escapeHtml(option.label)}</span>
+            <span>${escapeHtml(option.value)}</span>
+        </li>
+    `).join('');
+}
+
+async function openProductModal(productIndex) {
+    const product = productCategories[productIndex];
+    const modal = document.getElementById('productModal');
+    if (!product || !modal) return;
+
+    modalState.product = product;
+    modalState.images = buildProductImages(product);
+    modalState.currentIndex = 0;
+
+    const rawText = await loadProductText(product);
+    const parsedText = parseProductText(rawText, product);
+
+    console.log(parsedText)
+    document.getElementById('productModalBadge').textContent = product.badge || '';
+    document.getElementById('productModalTitle').textContent = product.name || '';
+    document.getElementById('productModalSubtitle').textContent = product.subtitle || '';
+    document.getElementById('productModalBasePrice').textContent = formatProductPrice(product);
+    document.getElementById('productModalPriceNote').textContent = product.priceNote || '';
+
+    const descriptionContainer = document.getElementById('productModalDescription');
+    const descriptionItems = parsedText.description.length ? parsedText.description : [product.desc || ''];
+    descriptionContainer.innerHTML = descriptionItems
+        .slice(0, 5)
+        .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+        .join('');
+
+    const optionsSection = document.getElementById('productModalOptionsSection');
+    const optionsList = document.getElementById('productModalOptions');
+    optionsList.innerHTML = buildOptionsMarkup(product, parsedText);
+    optionsSection.style.display = optionsList.children.length ? 'block' : 'none';
+
+    renderModalImage();
+    bindImageFallbacks(modal);
+
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeProductModal() {
+    const modal = document.getElementById('productModal');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+}
+
+function initProductCardClicks() {
+    document.querySelectorAll('.product-showcase').forEach((card) => {
+        card.addEventListener('click', (event) => {
+            if (event.target.closest('.product-thumbnail')) return;
+            const productIndex = Number(card.dataset.productIdx);
+            openProductModal(productIndex);
+        });
+    });
+}
+
+function initModalControls() {
+    const modal = document.getElementById('productModal');
+    if (!modal) return;
+
+    modal.addEventListener('click', (event) => {
+        if (event.target.closest('[data-close-modal="true"]')) {
+            closeProductModal();
+        }
+    });
+
+    modal.querySelector('.product-modal-prev')?.addEventListener('click', () => changeModalImage(-1));
+    modal.querySelector('.product-modal-next')?.addEventListener('click', () => changeModalImage(1));
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeProductModal();
+        if (!modal.classList.contains('is-open')) return;
+        if (event.key === 'ArrowLeft') changeModalImage(-1);
+        if (event.key === 'ArrowRight') changeModalImage(1);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadProductCategories();
-    } catch (e) {
-        console.warn(e);
+    } catch (error) {
+        console.warn(error);
         productCategories = [];
     }
 
     generateAllProductCards();
-
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', smoothScrollToSection);
-    });
-
-    updateActiveNavLink();
-    window.addEventListener('scroll', updateActiveNavLink);
-    window.addEventListener('resize', updateActiveNavLink);
-
-    const debouncedUpdateNav = debounce(updateActiveNavLink, 100);
-    window.addEventListener('scroll', debouncedUpdateNav);
-
-    handleHeaderScroll();
-    window.addEventListener('scroll', handleHeaderScroll);
-
-    // Инициализация после генерации карточек
-    setTimeout(() => {
-        initDynamicThumbnailGalleries(); // Переключение миниатюр
-        initModalGallery();              // Открытие модалки при клике на фото
-        initCardRedirect();              // Переход по карточке (кроме фото)
-        initImageErrorHandler();         // Обработка битых изображений
-    }, 100);
+    initDynamicThumbnailGalleries();
+    initProductCardClicks();
+    initModalControls();
 });
