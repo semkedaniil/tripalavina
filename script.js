@@ -9,6 +9,16 @@ const fullscreenState = {
     isOpen: false
 };
 
+let catalogFilter = {category: '', search: ''};
+
+const CATEGORY_LABELS = {
+    panels: 'Панели\u00A0и\u00A0ширмы',
+    diffusers: 'Диффузоры',
+    bass: 'Бас-ловушки',
+    furniture: 'Мебель\u00A0и\u00A0стойки',
+    accessories: 'Аксессуары'
+};
+
 // ======================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ========================
 function escapeHtml(str) {
     if (!str) return '';
@@ -72,6 +82,64 @@ function formatProductPrice(product) {
 function formatProductPriceNote(product) {
     const label = product.prices?.[0]?.label || '';
     return label.toLowerCase() === 'стоимость' ? '' : label;
+}
+
+function formatAvailabilityLabel(product) {
+    const a = product.availability || 'order';
+    if (a === 'in_stock') return 'В\u00A0наличии';
+    if (a === 'request') return 'Цена\u00A0и\u00A0срок по\u00A0запросу';
+    return 'Под\u00A0заказ';
+}
+
+function productMatchesFilter(product, category, searchRaw) {
+    if (category && product.category !== category) return false;
+    const q = (searchRaw || '').trim().toLowerCase();
+    if (!q) return true;
+    const hay = [product.title, product.subtitle, product.summary, product.badge]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+    return hay.includes(q);
+}
+
+function getFilteredCatalogEntries() {
+    return productCategories
+        .map((product, idx) => ({product, idx}))
+        .filter(({product}) => productMatchesFilter(product, catalogFilter.category, catalogFilter.search));
+}
+
+function setProductQueryParam(idx) {
+    try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('p', String(idx));
+        history.replaceState(null, '', url);
+    } catch (_) {
+        /* file:// и т.п. */
+    }
+}
+
+function clearProductQueryParam() {
+    try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('p');
+        const qs = url.searchParams.toString();
+        history.replaceState(null, '', url.pathname + (qs ? `?${qs}` : '') + url.hash);
+    } catch (_) {
+        /* file:// */
+    }
+}
+
+function tryOpenProductFromQuery() {
+    let raw;
+    try {
+        raw = new URLSearchParams(window.location.search).get('p');
+    } catch (_) {
+        return;
+    }
+    if (raw === null || raw === '') return;
+    const idx = parseInt(raw, 10);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= productCategories.length) return;
+    requestAnimationFrame(() => openProductModal(idx));
 }
 
 // ======================== ОБРАБОТКА ИЗОБРАЖЕНИЙ ========================
@@ -195,22 +263,95 @@ function initCaseGalleryInteractions() {
     });
 }
 
+function renderCatalogSkeleton() {
+    const productsGrid = document.getElementById('galleryGrid') || document.querySelector('.gallery-grid');
+    if (!productsGrid) return;
+    productsGrid.innerHTML = Array.from({length: 6}, () => `
+        <article class="catalog-skeleton-card" aria-hidden="true">
+            <div class="catalog-skeleton-img"></div>
+            <div class="catalog-skeleton-line catalog-skeleton-line--lg"></div>
+            <div class="catalog-skeleton-line"></div>
+            <div class="catalog-skeleton-line catalog-skeleton-line--sm"></div>
+        </article>
+    `).join('');
+}
+
+function showCatalogLoadError() {
+    const productsGrid = document.getElementById('galleryGrid') || document.querySelector('.gallery-grid');
+    const msg = document.getElementById('catalogMessage');
+    if (productsGrid) {
+        productsGrid.innerHTML = '';
+    }
+    if (msg) {
+        msg.hidden = false;
+        msg.innerHTML = `
+            <p class="catalog-message__text">Не\u00A0удалось загрузить каталог. Проверьте соединение или откройте сайт через локальный сервер (fetch к\u00A0products.json).</p>
+            <button type="button" class="btn btn-primary catalog-retry-btn">Повторить</button>
+        `;
+        const btn = msg.querySelector('.catalog-retry-btn');
+        btn?.addEventListener('click', () => {
+            msg.hidden = true;
+            msg.innerHTML = '';
+            bootstrapCatalog();
+        });
+    }
+    const countEl = document.getElementById('catalogCount');
+    if (countEl) countEl.textContent = '';
+}
+
+function updateCatalogCount(visible, total) {
+    const countEl = document.getElementById('catalogCount');
+    if (!countEl) return;
+    if (!total) {
+        countEl.textContent = '';
+        return;
+    }
+    countEl.textContent = visible === total ? `Товаров: ${total}` : `Показано: ${visible}\u00A0из\u00A0${total}`;
+}
+
+function syncCatalogChipState() {
+    document.querySelectorAll('.catalog-chip').forEach((btn) => {
+        const on = btn.dataset.category === catalogFilter.category;
+        btn.classList.toggle('is-active', on);
+        btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+}
+
 function generateAllProductCards() {
-    const productsGrid = document.querySelector('.gallery-grid');
+    const productsGrid = document.getElementById('galleryGrid') || document.querySelector('.gallery-grid');
+    const msg = document.getElementById('catalogMessage');
     if (!productsGrid) return;
 
+    if (msg) {
+        msg.hidden = true;
+        msg.innerHTML = '';
+    }
+
     if (!productCategories.length) {
-        productsGrid.innerHTML = '<p class="catalog-intro">Каталог не удалось загрузить. Откройте сайт через локальный сервер, чтобы работал fetch для файла products.json.</p>';
+        updateCatalogCount(0, 0);
+        productsGrid.innerHTML = '<p class="catalog-intro">Каталог пуст. Проверьте файл\u00A0products.json.</p>';
         return;
     }
 
-    productsGrid.innerHTML = productCategories.map((product, idx) => {
+    const entries = getFilteredCatalogEntries();
+    updateCatalogCount(entries.length, productCategories.length);
+
+    if (!entries.length) {
+        productsGrid.innerHTML = '<p class="catalog-empty">По\u00A0вашему запросу ничего не\u00A0найдено. Сбросьте поиск или\u00A0выберите другую категорию.</p>';
+        bindImageFallbacks(productsGrid);
+        return;
+    }
+
+    productsGrid.innerHTML = entries.map(({product, idx}) => {
         const thumbCount = Math.min(productImageCount(product), 4);
         const thumbnails = Array.from({length: thumbCount}, (_, thumbIndex) => {
             const imageUrl = productImageUrl(product, thumbIndex + 1);
             const activeClass = thumbIndex === 0 ? ' active' : '';
             return `<img class="product-thumbnail${activeClass}" src="${escapeHtml(imageUrl)}" data-image="${escapeHtml(imageUrl)}" alt="${escapeHtml(product.title)}" loading="lazy">`;
         }).join('');
+
+        const catLabel = product.category ? (CATEGORY_LABELS[product.category] || '') : '';
+        const stock = formatAvailabilityLabel(product);
 
         return `
             <article class="gallery-item product-showcase" data-product-idx="${idx}" id="product-${idx}">
@@ -221,6 +362,10 @@ function generateAllProductCards() {
                 <div class="gallery-overlay">
                     <div class="product-header">
                         <div class="product-header-content">
+                            <div class="product-card-meta">
+                                ${catLabel ? `<span class="product-card-category">${escapeHtml(catLabel)}</span>` : ''}
+                                <span class="product-stock-pill">${escapeHtml(stock)}</span>
+                            </div>
                             <h3>${escapeHtml(product.title)}</h3>
                             <div class="product-subtitle">${escapeHtml(product.subtitle || '')}</div>
                             <div class="product-description-short">${escapeHtml(product.summary || '')}</div>
@@ -409,6 +554,10 @@ function openProductModal(productIndex) {
     modalState.currentIndex = 0;
 
     document.getElementById('productModalBadge').textContent = product.badge || '';
+    const stockEl = document.getElementById('productModalStock');
+    if (stockEl) {
+        stockEl.textContent = formatAvailabilityLabel(product);
+    }
     document.getElementById('productModalTitle').textContent = product.title || '';
     document.getElementById('productModalSubtitle').textContent = product.subtitle || '';
     document.getElementById('productModalBasePrice').textContent = formatProductPrice(product);
@@ -449,6 +598,8 @@ function openProductModal(productIndex) {
         dialog.scrollTop = 0;
         dialog.scrollLeft = 0;
     }
+
+    setProductQueryParam(productIndex);
 }
 
 function closeProductModal() {
@@ -458,16 +609,78 @@ function closeProductModal() {
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    clearProductQueryParam();
 }
 
-function initProductCardClicks() {
-    document.querySelectorAll('.product-showcase').forEach((card) => {
-        card.addEventListener('click', (event) => {
-            if (event.target.closest('.product-thumbnail')) return;
-            const productIndex = Number(card.dataset.productIdx);
-            openProductModal(productIndex);
-        });
+function initProductGridDelegation() {
+    const grid = document.getElementById('galleryGrid') || document.querySelector('.gallery-grid');
+    if (!grid || grid.dataset.delegationBound === 'true') return;
+    grid.dataset.delegationBound = 'true';
+    grid.addEventListener('click', (event) => {
+        if (event.target.closest('.product-thumbnail')) return;
+        const card = event.target.closest('.product-showcase[data-product-idx]');
+        if (!card) return;
+        const productIndex = Number(card.dataset.productIdx);
+        if (Number.isNaN(productIndex)) return;
+        openProductModal(productIndex);
     });
+}
+
+function debounce(fn, ms) {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), ms);
+    };
+}
+
+function initCatalogToolbar() {
+    const chips = document.getElementById('catalogChips');
+    const search = document.getElementById('catalogSearch');
+    if (chips) {
+        chips.addEventListener('click', (event) => {
+            const btn = event.target.closest('.catalog-chip[data-category]');
+            if (!btn) return;
+            catalogFilter.category = btn.dataset.category ?? '';
+            syncCatalogChipState();
+            generateAllProductCards();
+            initDynamicThumbnailGalleries();
+        });
+    }
+    if (search) {
+        const run = debounce(() => {
+            catalogFilter.search = search.value;
+            generateAllProductCards();
+            initDynamicThumbnailGalleries();
+        }, 220);
+        search.addEventListener('input', run);
+        search.addEventListener('search', run);
+    }
+}
+
+function refreshCatalogAfterLoad() {
+    syncCatalogChipState();
+    const search = document.getElementById('catalogSearch');
+    if (search) search.value = '';
+    catalogFilter = {category: '', search: ''};
+    generateCasesGallery();
+    initCaseGalleryInteractions();
+    generateAllProductCards();
+    initDynamicThumbnailGalleries();
+    initProductGridDelegation();
+    tryOpenProductFromQuery();
+}
+
+async function bootstrapCatalog() {
+    renderCatalogSkeleton();
+    try {
+        await loadProductCategories();
+        refreshCatalogAfterLoad();
+    } catch (error) {
+        console.warn(error);
+        productCategories = [];
+        showCatalogLoadError();
+    }
 }
 
 function initModalControls() {
@@ -503,18 +716,8 @@ function initModalControls() {
 }
 
 // ======================== ИНИЦИАЛИЗАЦИЯ ========================
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        await loadProductCategories();
-    } catch (error) {
-        console.warn(error);
-        productCategories = [];
-    }
-
-    generateCasesGallery();
-    initCaseGalleryInteractions();
-    generateAllProductCards();
-    initDynamicThumbnailGalleries();
-    initProductCardClicks();
+document.addEventListener('DOMContentLoaded', () => {
+    initCatalogToolbar();
     initModalControls();
+    bootstrapCatalog();
 });

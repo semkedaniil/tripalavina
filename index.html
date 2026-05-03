@@ -12,7 +12,9 @@
     <div class="container">
         <div class="header-spacer" aria-hidden="true"></div>
         <div class="logo">
-            <img src="static/logo/wide.png" alt="Tripalavina" class="logo-img">
+            <a href="#gallery" class="logo-link" title="К каталогу">
+                <img src="static/logo/wide.png" alt="Tripalavina" class="logo-img">
+            </a>
         </div>
         <nav class="nav" aria-label="Социальные сети">
             <div class="social-links-header">
@@ -96,9 +98,9 @@
     <section class="cases-gallery">
         <div class="container">
             <div class="cases-gallery-head">
-                <p class="hero-description">Tripalavina Store создаёт акустические решения, раскрывающие звук и&nbsp;устраняющие искажения пространства, делая прослушивание точным и&nbsp;комфортным.</p>
+                <p class="hero-description">Tripalavina&nbsp;Store создаёт акустические решения, раскрывающие звук и&nbsp;устраняющие искажения пространства, делая прослушивание точным и&nbsp;комфортным.</p>
                 <p class="hero-description">Акустические изделия убирают лишние отражения, выравнивают бас и&nbsp;делают звучание более детальным и&nbsp;естественным, а&nbsp;пространство работает на&nbsp;звук.</p>
-                <p class="hero-description">Это не просто элементы интерьера, а&nbsp;продуманные решения, позволяющие системе звучать так, как она действительно может &mdash; слушать звук таким, каким он задуман.</p>
+                <p class="hero-description">Это не просто элементы интерьера, а&nbsp;продуманные решения, позволяющие системе звучать так, как&nbsp;она действительно может &mdash; слушать звук таким, каким&nbsp;он задуман.</p>
             </div>
             <div class="cases-grid" id="casesGrid" aria-label="Галерея примеров работ"></div>
         </div>
@@ -106,7 +108,23 @@
 
     <section id="gallery" class="gallery">
         <div class="container">
-            <div class="gallery-grid"></div>
+            <div class="catalog-toolbar" role="region" aria-label="Каталог">
+                <div class="catalog-toolbar-row">
+                    <label class="catalog-search-label" for="catalogSearch">Поиск</label>
+                    <input type="search" id="catalogSearch" class="catalog-search" placeholder="Название,&nbsp;описание…" autocomplete="off" enterkeyhint="search">
+                    <p id="catalogCount" class="catalog-count" aria-live="polite"></p>
+                </div>
+                <div class="catalog-chips" id="catalogChips" role="tablist" aria-label="Категории">
+                    <button type="button" class="catalog-chip is-active" data-category="" role="tab" aria-selected="true">Все</button>
+                    <button type="button" class="catalog-chip" data-category="panels" role="tab" aria-selected="false">Панели&nbsp;и&nbsp;ширмы</button>
+                    <button type="button" class="catalog-chip" data-category="diffusers" role="tab" aria-selected="false">Диффузоры</button>
+                    <button type="button" class="catalog-chip" data-category="bass" role="tab" aria-selected="false">Бас-ловушки</button>
+                    <button type="button" class="catalog-chip" data-category="furniture" role="tab" aria-selected="false">Мебель&nbsp;и&nbsp;стойки</button>
+                    <button type="button" class="catalog-chip" data-category="accessories" role="tab" aria-selected="false">Аксессуары</button>
+                </div>
+            </div>
+            <div id="catalogMessage" class="catalog-message" role="status" hidden></div>
+            <div class="gallery-grid" id="galleryGrid"></div>
         </div>
     </section>
 
@@ -114,7 +132,7 @@
         <div class="container about-container">
             <header class="about-header">
                 <h2 id="about-title" class="section-title about-title">О нас</h2>
-                <p class="about-lead">Tripalavina — мастерская акустических решений: от поглощения и диффузии до мебели и стоек. Делаем так, чтобы звук в комнате стал ровнее, а интерьер — цельнее.</p>
+                <p class="about-lead">Tripalavina&nbsp;&mdash; мастерская акустических решений: от&nbsp;поглощения и&nbsp;диффузии до&nbsp;мебели и&nbsp;стоек. Делаем так, чтобы звук в&nbsp;комнате стал ровнее, а&nbsp;интерьер&nbsp;&mdash; цельнее.</p>
             </header>
 
             <div class="about-grid">
@@ -123,7 +141,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 8l8-2M8 16l8 2M5 12h14"/><circle cx="12" cy="12" r="2"/></svg>
                     </div>
                     <h3 class="about-card-title">Специализация</h3>
-                    <p class="about-card-text">Предметы для акустического оформления студий звукозаписи, домашних студий, hi-fi и high-end систем — от панелей и ловушек до стоек и студийной мебели.</p>
+                    <p class="about-card-text">Предметы для акустического оформления студий звукозаписи, домашних студий, hi-fi и&nbsp;high-end систем&nbsp;&mdash; от&nbsp;панелей и&nbsp;ловушек до&nbsp;стоек и&nbsp;студийной мебели.</p>
                 </article>
 
                 <article class="about-card">
@@ -131,7 +149,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 100-18 9 9 0 000 18z"/><path d="M12 7v5l3 2"/></svg>
                     </div>
                     <h3 class="about-card-title">Миссия</h3>
-                    <p class="about-card-text">Создавать продукты, с которыми музыку слышно так, как задумал исполнитель: честный бас, читаемый микс и комфортное прослушивание.</p>
+                    <p class="about-card-text">Создавать продукты, с&nbsp;которыми музыку слышно так, как&nbsp;задумал исполнитель: честный бас, читаемый микс и&nbsp;комфортное прослушивание.</p>
                 </article>
 
                 <article class="about-card">
@@ -139,7 +157,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/><path d="M5 19h14"/></svg>
                     </div>
                     <h3 class="about-card-title">Философия</h3>
-                    <p class="about-card-text">Гармония звука и интерьера: натуральное дерево, качественные металлы и продуманные полимеры — без компромиссов по материалам и сборке.</p>
+                    <p class="about-card-text">Гармония звука и&nbsp;интерьера: натуральное дерево, качественные металлы и&nbsp;продуманные полимеры&nbsp;&mdash; без компромиссов по&nbsp;материалам и&nbsp;сборке.</p>
                 </article>
 
                 <article class="about-card about-card--delivery">
@@ -147,7 +165,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 00-2-2H4a2 2 0 00-2 2v11a1 1 0 001 1h2"/><path d="M15 18h-2"/><path d="M19 18h1a1 1 0 001-1v-3.65a1 1 0 00-.22-.624l-3.48-4.35A1 1 0 0015.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
                     </div>
                     <h3 class="about-card-title">Доставка</h3>
-                    <p class="about-card-text">По всей территории России и за рубежом. Упаковка под габарит, согласуем ТК и сроки — напишите, куда везём.</p>
+                    <p class="about-card-text">По&nbsp;всей территории России и&nbsp;за&nbsp;рубежом. Упаковка под&nbsp;габарит, согласуем ТК и&nbsp;сроки&nbsp;&mdash; напишите, куда везём.</p>
                 </article>
             </div>
         </div>
@@ -156,6 +174,15 @@
 
 <footer id="contact" class="footer">
     <div class="container">
+        <div class="footer-trust">
+            <span>Доставка по&nbsp;РФ и&nbsp;за&nbsp;рубеж</span>
+            <span class="footer-trust__dot" aria-hidden="true">·</span>
+            <span>Изготовление и&nbsp;консультация в&nbsp;сообщениях</span>
+            <span class="footer-trust__dot" aria-hidden="true">·</span>
+            <a href="https://t.me/tripalavinastore" target="_blank" rel="noopener">Telegram</a>
+            <span class="footer-trust__dot" aria-hidden="true">·</span>
+            <a href="https://wa.me/79080599762" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
         <div class="footer-content">
             <div class="footer-copyright">
                 <p>&copy; 2025 Tripalavina. Все права защищены.</p>
@@ -163,6 +190,11 @@
         </div>
     </div>
 </footer>
+
+<nav class="mobile-cta-bar" aria-label="Быстрая связь">
+    <a class="mobile-cta-bar__btn mobile-cta-bar__btn--tg" href="https://t.me/tripalavinastore" target="_blank" rel="noopener">Telegram</a>
+    <a class="mobile-cta-bar__btn mobile-cta-bar__btn--wa" href="https://wa.me/79080599762" target="_blank" rel="noopener">WhatsApp</a>
+</nav>
 
 <div id="productModal" class="product-modal" aria-hidden="true">
     <div class="product-modal-backdrop" data-close-modal="true"></div>
@@ -179,6 +211,7 @@
             </div>
             <div class="product-modal-content">
                 <p id="productModalBadge" class="product-modal-badge"></p>
+                <p id="productModalStock" class="product-modal-stock"></p>
                 <h3 id="productModalTitle" class="product-modal-title"></h3>
                 <p id="productModalSubtitle" class="product-modal-subtitle"></p>
                 <div id="productModalSpecsSection" class="product-modal-info-section">
@@ -194,7 +227,7 @@
                 <h4 class="product-modal-description-title">Описание</h4>
                 <div id="productModalDescription" class="product-modal-description"></div>
                 <div class="product-modal-actions">
-                    <a class="btn btn-primary" href="https://t.me/tripalavinastore" target="_blank" rel="noopener">Написать в телеграм</a>
+                    <a class="btn btn-primary" href="https://t.me/tripalavinastore" target="_blank" rel="noopener">Написать в&nbsp;телеграм</a>
                     <a class="btn btn-secondary" href="https://wa.me/79080599762" target="_blank" rel="noopener">WhatsApp</a>
                     <a class="btn btn-secondary full-width" href="tel:+79080599762">Позвонить</a>
                 </div>
