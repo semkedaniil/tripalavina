@@ -454,12 +454,12 @@ function ensureFullscreenModal() {
     modal.setAttribute('aria-hidden', 'true');
     modal.innerHTML = `
         <button type="button" class="photo-fullscreen-close" aria-label="Закрыть фото" data-close-fullscreen="true"></button>
-        <button type="button" class="photo-fullscreen-arrow photo-fullscreen-prev" aria-label="Предыдущее фото">&#8249;</button>
+        <button type="button" class="photo-fullscreen-arrow photo-fullscreen-prev" aria-label="Предыдущее фото"></button>
         <figure class="photo-fullscreen-stage">
             <img id="photoFullscreenImage" src="" alt="">
             <figcaption id="photoFullscreenCaption" class="photo-fullscreen-caption"></figcaption>
         </figure>
-        <button type="button" class="photo-fullscreen-arrow photo-fullscreen-next" aria-label="Следующее фото">&#8250;</button>
+        <button type="button" class="photo-fullscreen-arrow photo-fullscreen-next" aria-label="Следующее фото"></button>
         <div id="photoFullscreenThumbs" class="photo-fullscreen-thumbs"></div>
     `;
     document.body.appendChild(modal);
