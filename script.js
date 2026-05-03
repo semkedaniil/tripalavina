@@ -20,6 +20,15 @@ function escapeHtml(str) {
     });
 }
 
+/** Кодирует сегменты пути (кириллица, пробелы, запятые) для корректной загрузки img/src и fetch */
+function staticAssetUrl(relPath) {
+    if (!relPath || /^(https?:|data:)/i.test(String(relPath))) return relPath;
+    return String(relPath)
+        .split('/')
+        .map((seg, i) => (i === 0 ? seg : encodeURIComponent(seg)))
+        .join('/');
+}
+
 function productImageFileIndex(product, position1Based) {
     if (Array.isArray(product.imageSlots) && product.imageSlots.length >= position1Based) {
         return product.imageSlots[position1Based - 1];
@@ -28,6 +37,9 @@ function productImageFileIndex(product, position1Based) {
 }
 
 function productImageCount(product) {
+    if (Array.isArray(product.imageNames) && product.imageNames.length) {
+        return product.imageNames.length;
+    }
     if (Array.isArray(product.imageSlots) && product.imageSlots.length) {
         return product.imageSlots.length;
     }
@@ -35,8 +47,21 @@ function productImageCount(product) {
 }
 
 function productImageUrl(product, position1Based) {
+    const i = position1Based - 1;
+    if (Array.isArray(product.imageNames) && product.imageNames[i]) {
+        return staticAssetUrl(`static/${product.folder}/${product.imageNames[i]}`);
+    }
     const n = productImageFileIndex(product, position1Based);
-    return `static/${product.folder}/${n}.jpg`;
+    return staticAssetUrl(`static/${product.folder}/${n}.jpg`);
+}
+
+/** Первое фото для блока «примеры в интерьерах»: interiorImages из JSON или первое каталожное */
+function productCaseShowcaseUrls(product) {
+    const fromJson = Array.isArray(product.interiorImages)
+        ? product.interiorImages.filter((u) => typeof u === 'string' && u.trim()).map(staticAssetUrl)
+        : [];
+    if (fromJson.length) return fromJson;
+    return [productImageUrl(product, 1)];
 }
 
 function formatProductPrice(product) {
@@ -59,7 +84,7 @@ function attachImageFallback(image) {
 
         const cleanSrc = this.src.split('?')[0];
         const stem = cleanSrc.replace(/\.[^/.]+$/, '');
-        const variants = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG'].map((ext) => stem + ext);
+        const variants = ['.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG', '.webp', '.WEBP'].map((ext) => stem + ext);
         let next = Number(this.dataset.imgExtNext || 0);
 
         while (next < variants.length) {
@@ -103,6 +128,71 @@ function buildInfoListMarkup(items = []) {
             </li>
         `;
     }).join('');
+}
+
+/** Индексы товаров для блока «примеры»: меньше карточек, равномерно по каталогу */
+function getCasesGalleryProductIndices(total, limit) {
+    if (total === 0) return [];
+    if (total <= limit) return [...Array(total).keys()];
+    const out = [];
+    const last = total - 1;
+    for (let k = 0; k < limit; k++) {
+        out.push(Math.round((k * last) / (limit - 1)));
+    }
+    return [...new Set(out)].sort((a, b) => a - b);
+}
+
+const CASES_GALLERY_CARD_LIMIT = 6;
+
+function generateCasesGallery() {
+    const grid = document.querySelector('.cases-grid');
+    if (!grid) return;
+
+    if (!productCategories.length) {
+        grid.innerHTML = '';
+        return;
+    }
+
+    const indices = getCasesGalleryProductIndices(productCategories.length, CASES_GALLERY_CARD_LIMIT);
+
+    grid.innerHTML = indices.map((idx, slot) => {
+        const product = productCategories[idx];
+        const showcaseUrls = productCaseShowcaseUrls(product);
+        const src = showcaseUrls[0];
+        const title = product.title || 'Tripalavina';
+        const summary = product.summary || '';
+        const label = `Открыть карточку: ${title}`;
+        return `
+            <article class="case-card" data-product-idx="${idx}" role="button" tabindex="0" aria-label="${escapeHtml(label)}">
+                <img src="${escapeHtml(src)}" alt="" loading="${slot < 2 ? 'eager' : 'lazy'}" decoding="async">
+                <div class="case-card-copy">
+                    <h3>${escapeHtml(title)}</h3>
+                    <p>${escapeHtml(summary)}</p>
+                </div>
+            </article>
+        `;
+    }).join('');
+
+    bindImageFallbacks(grid);
+}
+
+function initCaseGalleryInteractions() {
+    const grid = document.querySelector('.cases-grid');
+    if (!grid) return;
+
+    grid.addEventListener('click', (event) => {
+        const card = event.target.closest('.case-card[data-product-idx]');
+        if (!card) return;
+        openProductModal(Number(card.dataset.productIdx));
+    });
+
+    grid.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const card = event.target.closest('.case-card[data-product-idx]');
+        if (!card) return;
+        event.preventDefault();
+        openProductModal(Number(card.dataset.productIdx));
+    });
 }
 
 function generateAllProductCards() {
@@ -330,7 +420,14 @@ function openProductModal(productIndex) {
     specsSection.style.display = specsList.children.length ? 'block' : 'none';
 
     const pricesList = document.getElementById('productModalPrices');
-    pricesList.innerHTML = buildInfoListMarkup(product.prices || []);
+    const priceRows = product.prices || [];
+    if (priceRows.length <= 1) {
+        pricesList.innerHTML = '';
+        pricesList.hidden = true;
+    } else {
+        pricesList.hidden = false;
+        pricesList.innerHTML = buildInfoListMarkup(priceRows);
+    }
 
     const descriptionContainer = document.getElementById('productModalDescription');
     const descriptionItems = Array.isArray(product.description) && product.description.length
@@ -346,6 +443,12 @@ function openProductModal(productIndex) {
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+
+    const dialog = modal.querySelector('.product-modal-dialog');
+    if (dialog) {
+        dialog.scrollTop = 0;
+        dialog.scrollLeft = 0;
+    }
 }
 
 function closeProductModal() {
@@ -408,6 +511,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         productCategories = [];
     }
 
+    generateCasesGallery();
+    initCaseGalleryInteractions();
     generateAllProductCards();
     initDynamicThumbnailGalleries();
     initProductCardClicks();
