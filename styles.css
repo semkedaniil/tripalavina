@@ -1006,8 +1006,27 @@ main {
     text-align: center;
 }
 
+.page-section-heading {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.55rem, 3vw, 2.05rem);
+    font-weight: 600;
+    text-align: center;
+    margin: 0 auto 1.1rem;
+    max-width: 40rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #fff, #a8a8a8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
 .cases-gallery {
     padding: 64px 0 16px;
+}
+
+.cases-gallery .page-section-heading {
+    margin-bottom: 1.35rem;
 }
 
 .cases-gallery-head {
@@ -1335,6 +1354,10 @@ main {
 
 .gallery {
     padding-top: 32px;
+}
+
+.gallery .page-section-heading {
+    margin-bottom: 1rem;
 }
 
 .gallery .product-header-content {

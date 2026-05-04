@@ -6,4 +6,6 @@ Allow: /
 User-agent: Yandex
 Allow: /
 
+Host: https://tripalavina.ru
+
 Sitemap: https://tripalavina.ru/sitemap.xml

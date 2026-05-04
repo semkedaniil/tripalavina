@@ -10,6 +10,10 @@
     <meta name="theme-color" content="#000000">
     <link rel="canonical" href="https://tripalavina.ru/">
     <link rel="alternate" hreflang="ru-RU" href="https://tripalavina.ru/">
+    <link rel="alternate" hreflang="x-default" href="https://tripalavina.ru/">
+    <meta name="apple-mobile-web-app-title" content="Tripalavina">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <meta property="og:title" content="Tripalavina — Каталог товаров">
     <meta property="og:description" content="Акустические панели, диффузоры и бас-ловушки для студии и прослушивания. Каталог Tripalavina Store, доставка по РФ.">
     <meta property="og:type" content="website">
@@ -33,9 +37,23 @@
                 "@id": "https://tripalavina.ru/#website",
                 "url": "https://tripalavina.ru/",
                 "name": "Tripalavina",
-                "description": "Каталог акустических решений: панели, ширмы, диффузоры, бас-ловушки.",
+                "description": "Каталог акустических решений: панели, ширмы, диффузоры, бас-ловушки, доставка по РФ.",
                 "inLanguage": "ru-RU",
                 "publisher": { "@id": "https://tripalavina.ru/#organization" }
+            },
+            {
+                "@type": "WebPage",
+                "@id": "https://tripalavina.ru/#webpage",
+                "url": "https://tripalavina.ru/",
+                "name": "Tripalavina — Каталог товаров",
+                "description": "Tripalavina Store: акустические панели и ширмы, диффузоры, бас-ловушки, стойки и аксессуары для студии и домашнего кинотеатра. Каталог с ценами, доставка по РФ.",
+                "inLanguage": "ru-RU",
+                "isPartOf": { "@id": "https://tripalavina.ru/#website" },
+                "about": { "@id": "https://tripalavina.ru/#organization" },
+                "primaryImageOfPage": {
+                    "@type": "ImageObject",
+                    "url": "https://tripalavina.ru/static/logo/wide.png"
+                }
             },
             {
                 "@type": "Organization",
@@ -43,13 +61,37 @@
                 "name": "Tripalavina Store",
                 "url": "https://tripalavina.ru/",
                 "logo": "https://tripalavina.ru/static/logo/wide.png",
+                "image": "https://tripalavina.ru/static/logo/wide.png",
                 "telephone": "+7-908-059-97-62",
                 "email": "markin-23@mail.ru",
+                "areaServed": { "@type": "Country", "name": "RU" },
+                "contactPoint": {
+                    "@type": "ContactPoint",
+                    "telephone": "+7-908-059-97-62",
+                    "email": "markin-23@mail.ru",
+                    "contactType": "customer support",
+                    "availableLanguage": ["Russian"]
+                },
                 "sameAs": [
                     "https://t.me/tripalavinastore",
                     "https://vk.com/tripalavinastore",
                     "https://www.instagram.com/tripalavinastore",
-                    "https://www.avito.ru/brands/i303304601?src=sharing"
+                    "https://www.avito.ru/brands/i303304601?src=sharing",
+                    "https://max.ru/u/f9LHodD0cOLTtebfnx8A7eKQdkFQSSbNoE9JKcvnkujwTbYwoGe5E3LJsss"
+                ]
+            },
+            {
+                "@type": "ItemList",
+                "@id": "https://tripalavina.ru/#catalog-categories",
+                "name": "Категории каталога Tripalavina",
+                "numberOfItems": 6,
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Все товары", "url": "https://tripalavina.ru/#gallery" },
+                    { "@type": "ListItem", "position": 2, "name": "Панели и ширмы", "url": "https://tripalavina.ru/#gallery" },
+                    { "@type": "ListItem", "position": 3, "name": "Диффузоры", "url": "https://tripalavina.ru/#gallery" },
+                    { "@type": "ListItem", "position": 4, "name": "Бас-ловушки", "url": "https://tripalavina.ru/#gallery" },
+                    { "@type": "ListItem", "position": 5, "name": "Мебель и стойки", "url": "https://tripalavina.ru/#gallery" },
+                    { "@type": "ListItem", "position": 6, "name": "Аксессуары", "url": "https://tripalavina.ru/#gallery" }
                 ]
             }
         ]
@@ -61,7 +103,7 @@
     <div class="container">
         <div class="logo">
             <a href="#gallery" class="logo-link" title="К каталогу">
-                <img src="static/logo/wide.png" alt="Tripalavina" class="logo-img">
+                <img src="static/logo/wide.png" alt="Tripalavina Store — акустика, каталог" class="logo-img" decoding="async" fetchpriority="high">
             </a>
         </div>
         <nav class="nav" aria-label="Социальные сети">
@@ -113,9 +155,10 @@
 </header>
 
 <main>
-    <h1 class="visually-hidden">Tripalavina Store — акустические панели, ширмы, диффузоры и бас-ловушки: каталог товаров</h1>
-    <section class="cases-gallery">
+    <h1 class="visually-hidden">Tripalavina Store — акустические панели, ширмы, диффузоры, бас-ловушки, каталог</h1>
+    <section class="cases-gallery" aria-labelledby="cases-gallery-title">
         <div class="container">
+            <h2 id="cases-gallery-title" class="page-section-heading">Примеры в интерьере</h2>
             <div class="cases-gallery-head">
                 <p class="hero-description">Tripalavina&nbsp;Store создаёт акустические решения, раскрывающие звук и&nbsp;устраняющие искажения пространства, делая прослушивание точным и&nbsp;комфортным.</p>
                 <p class="hero-description">Акустические изделия убирают лишние отражения, выравнивают бас и&nbsp;делают звучание более детальным и&nbsp;естественным, а&nbsp;пространство работает на&nbsp;звук.</p>
@@ -125,9 +168,10 @@
         </div>
     </section>
 
-    <section id="gallery" class="gallery">
+    <section id="gallery" class="gallery" aria-labelledby="catalog-section-title">
         <div class="container">
-            <div class="catalog-toolbar" role="region" aria-label="Каталог">
+            <h2 id="catalog-section-title" class="page-section-heading">Каталог товаров</h2>
+            <div class="catalog-toolbar" role="region" aria-label="Фильтры каталога">
                 <div class="catalog-toolbar-row">
                     <label class="catalog-search-label" for="catalogSearch">Поиск</label>
                     <input type="search" id="catalogSearch" class="catalog-search" placeholder="Название,&nbsp;описание…" autocomplete="off" enterkeyhint="search">
