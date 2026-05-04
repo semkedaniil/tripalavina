@@ -10,6 +10,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const snippetsDir = path.join(__dirname, 'snippets');
 
+/** Публичный origin сайта (canonical, OG). При другом домене замените. */
+const SITE_ORIGIN = 'https://tripalavina.ru';
+
+function absSiteUrl(relativePath) {
+    const normalized = String(relativePath).replace(/\\/g, '/').replace(/^\//, '');
+    const encoded = normalized.split('/').map((seg) => encodeURIComponent(seg)).join('/');
+    return `${SITE_ORIGIN}/${encoded}`;
+}
+
 function productImageFileIndex(p, position1Based) {
     if (Array.isArray(p.imageSlots) && p.imageSlots.length >= position1Based) {
         return p.imageSlots[position1Based - 1];
@@ -53,8 +62,31 @@ const arrowNext = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" s
 
 function buildProductPage(p, headerHtml, footerHtml) {
     const max = productImageCount(p);
-    const nameAttr = escAttr(p.name);
-    const nameText = escText(p.name);
+    const displayName = p.name || p.title || 'Tripalavina';
+    const nameAttr = escAttr(displayName);
+    const nameText = escText(displayName);
+    const slug = p.slug;
+    const pageUrl = `${SITE_ORIGIN}/${encodeURIComponent(slug)}.html`;
+    const firstImageUrl = absSiteUrl(productImageUrl(p, 1));
+    const metaDescRaw = [p.summary, p.subtitle, p.badge].filter(Boolean).join(' ').slice(0, 165);
+    const metaDesc = escAttr(metaDescRaw || `${displayName} — Tripalavina`);
+    const availabilitySchema =
+        p.availability === 'in_stock'
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/PreOrder';
+    const productLd = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: displayName,
+        image: [firstImageUrl],
+        brand: { '@type': 'Brand', name: 'Tripalavina' },
+        offers: {
+            '@type': 'Offer',
+            url: pageUrl,
+            availability: availabilitySchema,
+        },
+    };
+    const productLdJson = JSON.stringify(productLd).replace(/</g, '\\u003c');
 
     const slides = [];
     const thumbs = [];
@@ -87,8 +119,24 @@ function buildProductPage(p, headerHtml, footerHtml) {
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${nameText} - Tripalavina</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>${nameText} — Tripalavina, каталог акустики</title>
+    <meta name="description" content="${metaDesc}">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="${escAttr(pageUrl)}">
+    <meta property="og:type" content="product">
+    <meta property="og:url" content="${escAttr(pageUrl)}">
+    <meta property="og:title" content="${escAttr(`${displayName} — Tripalavina`)}">
+    <meta property="og:description" content="${metaDesc}">
+    <meta property="og:image" content="${escAttr(firstImageUrl)}">
+    <meta property="og:locale" content="ru_RU">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${escAttr(`${displayName} — Tripalavina`)}">
+    <meta name="twitter:description" content="${metaDesc}">
+    <meta name="twitter:image" content="${escAttr(firstImageUrl)}">
+    <script type="application/ld+json">
+${productLdJson}
+    </script>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>

@@ -2,15 +2,63 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tripalavina - Фотогалерея</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Tripalavina — Каталог товаров</title>
+    <meta name="description" content="Tripalavina Store: акустические панели и ширмы, диффузоры (QRD, skyline), бас-ловушки, стойки и аксессуары для студии и домашнего кинотеатра. Каталог с ценами, доставка по РФ.">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="theme-color" content="#000000">
+    <link rel="canonical" href="https://tripalavina.ru/">
+    <link rel="alternate" hreflang="ru-RU" href="https://tripalavina.ru/">
+    <meta property="og:title" content="Tripalavina — Каталог товаров">
+    <meta property="og:description" content="Акустические панели, диффузоры и бас-ловушки для студии и прослушивания. Каталог Tripalavina Store, доставка по РФ.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tripalavina.ru/">
+    <meta property="og:site_name" content="Tripalavina">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:image" content="https://tripalavina.ru/static/logo/wide.png">
+    <meta property="og:image:alt" content="Tripalavina — акустика и каталог">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tripalavina — Каталог товаров">
+    <meta name="twitter:description" content="Акустические панели, диффузоры, бас-ловушки и аксессуары. Каталог с доставкой по РФ.">
+    <meta name="twitter:image" content="https://tripalavina.ru/static/logo/wide.png">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "@id": "https://tripalavina.ru/#website",
+                "url": "https://tripalavina.ru/",
+                "name": "Tripalavina",
+                "description": "Каталог акустических решений: панели, ширмы, диффузоры, бас-ловушки.",
+                "inLanguage": "ru-RU",
+                "publisher": { "@id": "https://tripalavina.ru/#organization" }
+            },
+            {
+                "@type": "Organization",
+                "@id": "https://tripalavina.ru/#organization",
+                "name": "Tripalavina Store",
+                "url": "https://tripalavina.ru/",
+                "logo": "https://tripalavina.ru/static/logo/wide.png",
+                "telephone": "+7-908-059-97-62",
+                "email": "markin-23@mail.ru",
+                "sameAs": [
+                    "https://t.me/tripalavinastore",
+                    "https://vk.com/tripalavinastore",
+                    "https://www.instagram.com/tripalavinastore",
+                    "https://www.avito.ru/brands/i303304601?src=sharing"
+                ]
+            }
+        ]
+    }
+    </script>
 </head>
 <body>
 <header class="header">
     <div class="container">
-        <div class="header-spacer" aria-hidden="true"></div>
         <div class="logo">
             <a href="#gallery" class="logo-link" title="К каталогу">
                 <img src="static/logo/wide.png" alt="Tripalavina" class="logo-img">
@@ -27,6 +75,11 @@
                 <a href="https://t.me/tripalavinastore" class="social-link" data-tooltip="Написать в Telegram" target="_blank" rel="noopener">
                     <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" fill="#0088CC"/>
+                    </svg>
+                </a>
+                <a href="https://max.ru/u/f9LHodD0cOLTtebfnx8A7eKQdkFQSSbNoE9JKcvnkujwTbYwoGe5E3LJsss" class="social-link" data-tooltip="Мессенджер MAX" target="_blank" rel="noopener">
+                    <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 2C6.48 2 2 5.58 2 10c0 1.85.87 3.55 2.33 4.9L3.5 22l7.28-3.63c.4.08.82.13 1.22.13 5.52 0 10-3.58 10-8s-4.48-8-10-8zm0 14.5c-.35 0-.69-.04-1.02-.1l-.58-.12-3.45 1.72.69-3.35-.38-.55A5.49 5.49 0 016.5 10C6.5 6.92 8.97 4.5 12 4.5s5.5 2.42 5.5 5.5-2.47 5.5-5.5 5.5z"/>
                     </svg>
                 </a>
                 <a href="https://wa.me/79080599762" class="social-link" data-tooltip="Написать в WhatsApp" target="_blank" rel="noopener">
@@ -59,42 +112,8 @@
     </div>
 </header>
 
-<aside class="sticky-side-panel" aria-label="Быстрые контакты">
-    <div class="sticky-side-panel__inner">
-        <a href="tel:+79080599762" class="sticky-side-panel__icon-link" data-tooltip="Позвонить">
-            <svg class="social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.63 2.62a2 2 0 0 1-.45 2.11L8 9.91a16 16 0 0 0 6.09 6.09l1.46-1.29a2 2 0 0 1 2.11-.45c.84.3 1.72.51 2.62.63A2 2 0 0 1 22 16.92z"/>
-            </svg>
-        </a>
-        <a href="https://www.instagram.com/tripalavinastore" class="sticky-side-panel__icon-link" data-tooltip="Instagram" target="_blank" rel="noopener">
-            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="#7c4dff"/>
-            </svg>
-        </a>
-        <a href="https://t.me/tripalavinastore" class="sticky-side-panel__icon-link" data-tooltip="Telegram" target="_blank" rel="noopener">
-            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" fill="#1d9bf0"/>
-            </svg>
-        </a>
-        <a href="https://vk.com/tripalavinastore" class="sticky-side-panel__icon-link sticky-side-panel__icon-link--vk" data-tooltip="Подписаться в VK" target="_blank" rel="noopener">
-            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12.785 15.346c.285 0 .407-.2.977-.774.579-.57.835-.652.978-.652.203 0 .387.082.753.449.57.57.652 1.018 1.874 1.018h2.24c.57 0 .774-.285.57-.855-.367-1.14-1.67-2.647-1.67-2.647-.244-.326-.163-.489 0-.733 0 0 1.303-1.833 1.425-2.444.041-.203 0-.366-.285-.366h-2.24c-.204 0-.326.122-.407.285 0 0-.733 1.752-1.792 2.892-.326.326-.448.408-.611.408-.082 0-.204-.082-.204-.326V8.917c0-.407-.122-.57-.448-.57h-3.503c-.244 0-.407.163-.407.326 0 .366.53.448.57 1.466v1.833c0 .407-.081.489-.244.489-.448 0-1.547-1.792-2.199-3.829-.122-.326-.244-.489-.651-.489H5.858c-.449 0-.53.204-.53.408 0 .366.448 2.199 2.077 4.602 1.1 1.629 2.688 2.484 4.113 2.484h.977z"/>
-            </svg>
-        </a>
-        <a href="https://wa.me/79080599762" class="sticky-side-panel__icon-link" data-tooltip="WhatsApp" target="_blank" rel="noopener">
-            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488" fill="#1fbf64"/>
-            </svg>
-        </a>
-        <a href="mailto:markin-23@mail.ru" class="sticky-side-panel__icon-link" data-tooltip="Email">
-            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" fill="#fff"/>
-            </svg>
-        </a>
-    </div>
-</aside>
-
 <main>
+    <h1 class="visually-hidden">Tripalavina Store — акустические панели, ширмы, диффузоры и бас-ловушки: каталог товаров</h1>
     <section class="cases-gallery">
         <div class="container">
             <div class="cases-gallery-head">
@@ -165,7 +184,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 00-2-2H4a2 2 0 00-2 2v11a1 1 0 001 1h2"/><path d="M15 18h-2"/><path d="M19 18h1a1 1 0 001-1v-3.65a1 1 0 00-.22-.624l-3.48-4.35A1 1 0 0015.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
                     </div>
                     <h3 class="about-card-title">Доставка</h3>
-                    <p class="about-card-text">По&nbsp;всей территории России и&nbsp;за&nbsp;рубежом. Упаковка под&nbsp;габарит, согласуем ТК и&nbsp;сроки&nbsp;&mdash; напишите, куда везём.</p>
+                    <p class="about-card-text">По&nbsp;всей территории России. Упаковка под&nbsp;габарит, согласуем ТК и&nbsp;сроки&nbsp;&mdash; напишите, куда везём.</p>
                 </article>
             </div>
         </div>
@@ -175,11 +194,13 @@
 <footer id="contact" class="footer">
     <div class="container">
         <div class="footer-trust">
-            <span>Доставка по&nbsp;РФ и&nbsp;за&nbsp;рубеж</span>
+            <span>Доставка по&nbsp;РФ</span>
             <span class="footer-trust__dot" aria-hidden="true">·</span>
             <span>Изготовление и&nbsp;консультация в&nbsp;сообщениях</span>
             <span class="footer-trust__dot" aria-hidden="true">·</span>
             <a href="https://t.me/tripalavinastore" target="_blank" rel="noopener">Telegram</a>
+            <span class="footer-trust__dot" aria-hidden="true">·</span>
+            <a href="https://max.ru/u/f9LHodD0cOLTtebfnx8A7eKQdkFQSSbNoE9JKcvnkujwTbYwoGe5E3LJsss" target="_blank" rel="noopener">MAX</a>
             <span class="footer-trust__dot" aria-hidden="true">·</span>
             <a href="https://wa.me/79080599762" target="_blank" rel="noopener">WhatsApp</a>
         </div>

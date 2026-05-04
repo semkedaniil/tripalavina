@@ -17,8 +17,22 @@
     box-sizing: border-box;
 }
 
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 html {
     scroll-behavior: smooth;
+    background-color: #000;
+    overscroll-behavior-y: none;
 }
 
 body {
@@ -26,7 +40,9 @@ body {
     line-height: 1.6;
     color: var(--color-text);
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+    background-color: #0a0a0a;
     overflow-x: hidden;
+    overscroll-behavior-y: none;
 }
 
 .container {
@@ -42,28 +58,42 @@ body {
     top: 0;
     left: 0;
     right: 0;
+    padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: 16px;
-    z-index: 1000;
+    z-index: 2500;
+    isolation: isolate;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     transition: var(--transition);
 }
 
+/* Закрывает просвет при «резиновой» прокрутке (Telegram / iOS) над фиксированной шапкой */
+.header::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: max(96px, calc(env(safe-area-inset-top, 0px) + 48px));
+    background: #000;
+    pointer-events: none;
+    z-index: -1;
+}
+
 .header .container {
     display: grid;
-    grid-template-columns: minmax(420px, 1fr) auto minmax(320px, 1fr);
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 1rem;
 }
 
-.header-spacer {
-    width: 100%;
-    min-height: 1px;
-}
-
 .logo {
+    grid-column: 2;
+    justify-self: center;
     display: flex;
     justify-content: center;
+    max-width: min(520px, 100%);
+    min-width: 0;
 }
 
 .logo-link {
@@ -88,6 +118,8 @@ body {
 }
 
 .nav {
+    grid-column: 3;
+    justify-self: end;
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
@@ -125,8 +157,10 @@ body {
 }
 
 main {
-    margin-top: 80px;
+    margin-top: calc(80px + env(safe-area-inset-top, 0px));
     padding-top: 20px;
+    position: relative;
+    z-index: 0;
 }
 
 /* ===== ОБЩИЕ СЕКЦИИ ===== */
@@ -738,6 +772,7 @@ section {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+    text-align: center;
     gap: 8px 14px;
     margin-bottom: 1.75rem;
     padding: 14px 18px;
@@ -777,18 +812,20 @@ section {
 }
 
 .social-links-header {
-    position: fixed;
-    top: 32px;
-    right: 24px;
-    z-index: 1100;
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 .social-links-header__icons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 0.75rem;
+    max-width: min(100%, 420px);
 }
 
 .social-links-header__phone {
@@ -839,79 +876,6 @@ section {
     color: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
-}
-
-.sticky-side-panel {
-    position: fixed;
-    top: 50%;
-    right: 0;
-    z-index: 1050;
-    transform: translateY(-50%);
-}
-
-.sticky-side-panel__inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 10px;
-    border-radius: 22px 0 0 22px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(14px);
-}
-
-.sticky-side-panel__icon-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    background: #0b0b0b;
-    color: #fff;
-    text-decoration: none;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-    transition: transform 0.2s ease, background 0.2s ease;
-    position: relative;
-}
-
-.sticky-side-panel__icon-link:hover {
-    transform: translateX(-2px) scale(1.03);
-    background: #1a1a1a;
-}
-
-.sticky-side-panel__icon-link .social-icon {
-    width: 22px;
-    height: 22px;
-}
-
-.sticky-side-panel__icon-link--vk .social-icon {
-    width: 32px;
-    height: 32px;
-}
-
-.sticky-side-panel__icon-link[data-tooltip]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 50%;
-    right: calc(100% + 10px);
-    transform: translateY(-50%);
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: rgba(10, 10, 10, 0.94);
-    color: #fff;
-    font-size: 0.72rem;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: 0.2s ease;
-}
-
-.sticky-side-panel__icon-link:hover::after {
-    opacity: 1;
-    visibility: visible;
 }
 
 .social-link {
@@ -1209,6 +1173,26 @@ main {
     font-size: 0.88rem;
     color: rgba(255, 255, 255, 0.55);
     font-family: 'Montserrat', sans-serif;
+}
+
+@media (max-width: 640px) {
+    .catalog-toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+        margin-bottom: 12px;
+    }
+
+    .catalog-search {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
+    }
+
+    .catalog-count {
+        margin-left: 0;
+        text-align: center;
+        width: 100%;
+    }
 }
 
 .catalog-chips {
@@ -2115,7 +2099,7 @@ main {
 
 @media (max-width: 720px) {
     main {
-        margin-top: 110px;
+        margin-top: calc(110px + env(safe-area-inset-top, 0px));
     }
 
     .cases-gallery {
@@ -2155,12 +2139,6 @@ main {
 }
 
 /* ===== АДАПТИВНОСТЬ ===== */
-
-@media (max-width: 1420px) {
-    .header-spacer {
-        display: none;
-    }
-}
 
 /* Планшеты (≤1024px) */
 @media (max-width: 1024px) {
@@ -2208,13 +2186,19 @@ main {
     }
 
     .social-links-header {
-        left: auto;
-        top: 40px !important;
         gap: 8px;
     }
 
     main {
-        margin-top: 110px;
+        margin-top: calc(110px + env(safe-area-inset-top, 0px));
+    }
+
+    .hero-description {
+        text-align: left;
+        text-align-last: auto;
+        text-justify: auto;
+        hyphens: auto;
+        -webkit-hyphens: auto;
     }
 
     .hero {
@@ -2435,33 +2419,97 @@ main {
     }
 }
 
-/* ===== FINAL RESPONSIVE OVERRIDES ===== */
-@media (max-width: 1280px) {
+/* До ~ширины десктопа с трёхколоночной шапкой иконки наезжают на широкий логотип — две строки */
+@media (max-width: 1340px) {
+    .header .container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        justify-items: center;
+        row-gap: 10px;
+        column-gap: 0;
+    }
+
+    .logo {
+        grid-column: 1;
+        grid-row: 1;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .logo-img {
+        margin-top: 2px;
+        width: min(360px, 86vw);
+    }
+
+    .nav {
+        grid-column: 1;
+        grid-row: 2;
+        justify-self: stretch;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        justify-content: center;
+    }
+
     .social-links-header {
-        top: 24px;
+        align-items: center;
+        width: 100%;
+        max-width: 100%;
+        padding: 0 4px;
+    }
+
+    .social-links-header__icons {
+        justify-content: center;
+        max-width: 100%;
+        gap: 0.5rem 0.65rem;
+    }
+
+    .social-links-header__phone {
+        align-self: center;
+        text-align: center;
+    }
+
+    .social-links-header .social-link {
+        width: 36px;
+        height: 36px;
+    }
+
+    .social-links-header .social-icon {
+        width: 17px;
+        height: 17px;
+    }
+
+    main {
+        margin-top: calc(168px + env(safe-area-inset-top, 0px));
+        padding-top: 12px;
     }
 }
 
+/* ===== FINAL RESPONSIVE OVERRIDES ===== */
 @media (max-width: 1024px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     }
-
-    .social-links-header {
-        top: 16px;
-    }
 }
 
 @media (max-width: 600px) {
-    .social-links-header {
-        top: 13dvw !important;
+    .footer-trust {
+        flex-direction: column;
+        gap: 10px;
     }
 
+    .footer-trust__dot {
+        display: none;
+    }
 }
 
 @media (max-width: 400px) {
     .social-links-header {
         display: none;
+    }
+
+    main {
+        margin-top: calc(100px + env(safe-area-inset-top, 0px));
     }
 
 }
@@ -2470,23 +2518,6 @@ main {
     .social-links-header__phone {
         font-size: 0.86rem;
         letter-spacing: 0.04em;
-    }
-
-    .sticky-side-panel {
-        right: 0;
-        top: 30%;
-        transform: none;
-    }
-
-    .sticky-side-panel__inner {
-        gap: 10px;
-        padding: 10px 4px;
-        border-radius: 18px 0 0 18px;
-    }
-
-    .sticky-side-panel__icon-link {
-        width: 42px;
-        height: 42px;
     }
 
     .footer-content {

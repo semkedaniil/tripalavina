@@ -1,0 +1,9 @@
+# https://tripalavina.ru/
+User-agent: *
+Allow: /
+
+# Яндекс
+User-agent: Yandex
+Allow: /
+
+Sitemap: https://tripalavina.ru/sitemap.xml
