@@ -123,6 +123,8 @@ function buildProductPage(p, headerHtml, footerHtml) {
     <title>${nameText} — Tripalavina, каталог акустики</title>
     <meta name="description" content="${metaDesc}">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="icon" href="static/logo/logo_mini.png" type="image/png">
+    <link rel="apple-touch-icon" href="static/logo/logo_mini.png">
     <link rel="canonical" href="${escAttr(pageUrl)}">
     <meta property="og:type" content="product">
     <meta property="og:url" content="${escAttr(pageUrl)}">
